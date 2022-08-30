@@ -667,10 +667,10 @@ options = list(pageLength = 25)
 )
 ```
 
-<span style="font-size:12px">\*Distance to the driver in the first position.</span>  
-<span style="font-size:12px">\*Points at the end of the season if driver wins the maximum amount of points available and `r driver_standings$code[driver_standings$position==1]` does not score a single point.</span>  
-<span style="font-size:12px">\*Points at the end of the season if driver wins the maximum amount of points available and `r driver_standings$code[driver_standings$position==1]` achieves P2 in every remaining race (including sprint races).</span>  
-<span style="font-size:12px">\*Points at the end of the season if driver wins the maximum amount of points available and `r driver_standings$code[driver_standings$position==1]` achieves P3 in every remaining race (including sprint races).</span>  
+<span style="font-size:12px">\*Distance to the driver in the first position, i.e. `r driver_standings$FullName[driver_standings$position==1]` (`r driver_standings$code[driver_standings$position==1]`).</span>  
+<span style="font-size:12px">\*\*Points at the end of the season if driver wins the maximum amount of points available and `r driver_standings$code[driver_standings$position==1]` does not score a single point.</span>  
+<span style="font-size:12px">\*\*\*Points at the end of the season if driver wins the maximum amount of points available and `r driver_standings$code[driver_standings$position==1]` achieves P2 in every remaining race (including sprint races).</span>  
+<span style="font-size:12px">\*\*\*\*Points at the end of the season if driver wins the maximum amount of points available and `r driver_standings$code[driver_standings$position==1]` achieves P3 in every remaining race (including sprint races).</span>  
 
 ---
 
