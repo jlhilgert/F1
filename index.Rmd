@@ -1948,5 +1948,96 @@ round_var <- round_var + 1
 
 ---
 
+# <b>- [`r grandPrixRounds$RaceName[grandPrixRounds$Round == round_var]`](`r grandPrixRounds$url[round_var]`)</b> {.tabset .tabset-fade .tabset-pills}
+
+```{r Round 15, eval=FALSE, include=FALSE}
+#placeholder
+```
+
+```{r include=FALSE}
+winner_hex <- constructer_list$ColorCode[constructer_list$Constructor == as.character(driverResult %>% filter(Round == round_var) %>% filter(position == 1) %>% select(Constructor))]
+pole_hex <- constructer_list$ColorCode[constructer_list$Constructor == as.character(driverResult %>% filter(Round == round_var) %>% filter(StartingPos == 1) %>% select(Constructor))]
+fastest_lap_hex <- constructer_list$ColorCode[constructer_list$Constructor == as.character(driverResult %>% filter(Round == round_var) %>% filter(FastestLap == min(FastestLap, na.rm = T)) %>% select(Constructor))]
+```
+
+
+**Winner:** <span style="background-color:`r winner_hex`;color:white">&nbsp;`r paste(as.character(driverResult %>% filter(Round == round_var) %>% filter(position == 1) %>% select(code)), " (", as.character(driverResult %>% filter(Round == round_var) %>% filter(position == 1) %>% select(Constructor)), ")", sep = "")`&nbsp;</span> <br>
+
+**Pole:** <span style="background-color:`r pole_hex`;color:white">&nbsp;`r paste(as.character(driverResult %>% filter(Round == round_var) %>% filter(StartingPos == 1) %>% select(code)), " (", as.character(driverResult %>% filter(Round == round_var, StartingPos == 1) %>% select(Constructor)), ")", sep = "")`&nbsp;</span>  <br>
+
+**Fastest Lap:** <span style="background-color:`r fastest_lap_hex`;color:white">&nbsp;`r paste(as.character(driverResult %>% filter(Round == round_var) %>% filter(FastestLap == min(FastestLap, na.rm = T)) %>% select(code)), " (", as.character(driverResult %>% filter(Round == round_var) %>% filter(FastestLap == min(FastestLap, na.rm = T)) %>% select(Constructor)), ") - ", as.character(driverResult %>% filter(Round == round_var) %>% filter(FastestLap == min(FastestLap, na.rm = T)) %>% select(FastestLap)), "s", sep = "")`&nbsp;</span>
+
+```{r echo=FALSE}
+driver_standings <- getDriverStandings(round_var)
+
+driver_standings_current <- driver_standings %>%
+  select(FullName, code, PermanentNumber, Nationality, Constructor, position, points, wins) %>%
+  rename(Num = PermanentNumber) %>%
+  relocate(position, .before = FullName)
+```
+
+
+## Location
+
+```{r echo=FALSE, fig.height=7, fig.width=9}
+plotGPMap(round_var)
+```
+
+---
+
+## Race Result
+
+```{r echo=FALSE}
+DT::datatable(
+driverResult %>%
+  filter(Round == round_var) %>%
+  select(code, FullName, Constructor, position, StartingPos, points, Laps, Status, FastestLap, avgSpeedKph), 
+options = list(pageLength = 25)
+)
+```
+
+---
+
+## Qualifying Results
+
+```{r echo=FALSE}
+DT::datatable(
+quali_df[quali_df$Round == round_var,] %>% select(-c("Round", "Nationality")),
+options = list(pageLength = 25)
+)
+```
+
+---
+
+## Track Position Development
+
+```{r echo=FALSE, fig.height=7, fig.width=9}
+lapPlots <- plotLapTimes(round_var)
+
+lapPlots[[1]]
+```
+
+---
+
+## Lap Time Development
+
+```{r echo=FALSE, fig.height=7, fig.width=9}
+lapPlots[[2]]
+```
+
+---
+
+## WDC Standings
+
+```{r echo=FALSE}
+DT::datatable(driver_standings_current, options = list(pageLength = 25), rownames = F)
+```
+
+```{r include=FALSE}
+round_var <- round_var + 1
+```
+
+---
+
 # Data Source: {.unnumbered}
 **[Ergast Developer API](http://ergast.com/mrd/)**
