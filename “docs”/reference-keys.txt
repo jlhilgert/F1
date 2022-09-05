@@ -1,0 +1,14 @@
+bahrain-grand-prix
+location
+race-result
+qualifying-results
+track-position-development
+lap-time-development
+wdc-standings
+saudi-arabian-grand-prix
+location-1
+race-result-1
+qualifying-results-1
+track-position-development-1
+lap-time-development-1
+wdc-standings-1

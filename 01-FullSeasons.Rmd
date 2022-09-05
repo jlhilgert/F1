@@ -1,0 +1,195 @@
+# <b>[Full Season](https://en.wikipedia.org/wiki/2022_Formula_One_World_Championship)</b> {-}
+
+```{r libraries, warning=FALSE, include=FALSE}
+library(f1Package)
+lapply(f1_reqPackages, require, character.only = TRUE) 
+
+Sys.setlocale("LC_TIME", "English")
+```
+
+```{r include=FALSE}
+round_var <- 1
+target_year <- 2022
+```
+
+```{r include=FALSE}
+# Grand Prix Rounds
+url <- "http://ergast.com/api/f1/current"
+
+temp <- xmlToList(rawToChar(GET(url)$content))
+
+grandPrixRounds <- data.frame()
+for(i in 1:(length(temp$RaceTable)-1)) {
+  circuit_temp <- temp$RaceTable[i]
+  
+  row_temp <- cbind(
+    as.numeric(circuit_temp$Race$.attrs["round"]),
+    bind_rows(circuit_temp$Race[c(1,3)]),
+    circuit_temp$Race$Circuit$CircuitName,
+    bind_rows(circuit_temp$Race$Circuit$Location[1:2]),
+    bind_rows(circuit_temp$Race$Circuit$Location$.attrs),
+    circuit_temp$Race$.attrs["url"]
+  ) %>%
+    rename(
+      CircuitName = "circuit_temp$Race$Circuit$CircuitName",
+      Round = "as.numeric(circuit_temp$Race$.attrs[\"round\"])",
+      url = 'circuit_temp$Race$.attrs["url"]'
+      )
+  
+  grandPrixRounds <- rbind(grandPrixRounds, row_temp)
+}
+
+grandPrixRounds <- grandPrixRounds %>%
+  mutate(pointsFirst = ifelse(
+    Locality %in% c(
+      "Imola",
+      "Spielberg",
+      "São Paulo"
+    ),
+    32,
+    26
+  )) %>%
+  mutate(pointsSecond = ifelse(
+    Locality %in% c(
+      "Imola",
+      "Spielberg",
+      "São Paulo"
+    ),
+    25,
+    20
+  )) %>%
+  mutate(pointsThird = ifelse(
+    Locality %in% c(
+      "Imola",
+      "Spielberg",
+      "São Paulo"
+    ),
+    21,
+    15
+  )) %>%
+  mutate(lat = as.numeric(lat), long = as.numeric(long))
+```
+
+```{r include=FALSE}
+driver_standings <- getDriverStandings()
+
+constructer_list <- unique(driver_standings %>% select(Constructor, ColorCode))
+
+constructer_scale_colors <- getConstructerScaleColors()
+```
+
+```{r include=FALSE}
+pointsLeft <- sum(grandPrixRounds$pointsFirst[grandPrixRounds$Round > latest_round])
+pointsSecond <- sum(grandPrixRounds$pointsSecond[grandPrixRounds$Round > latest_round])
+pointsThird <- sum(grandPrixRounds$pointsThird[grandPrixRounds$Round > latest_round])
+
+prospectTable <- driver_standings %>%
+  select(FullName,code,Constructor,position,points) %>%
+  mutate(distToFirst = driver_standings$points[driver_standings$position==1] - points) %>%
+  mutate(pointsMaximiz = pointsLeft - distToFirst) %>%
+  mutate(pointsVsSecond = ifelse(
+    position == 1, NA, pointsLeft - (distToFirst+pointsSecond)
+  )) %>%
+  mutate(pointsVsThird = ifelse(
+    position == 1, NA, pointsLeft - (distToFirst+pointsThird)
+  )) %>%
+  rename(
+    `distToFirst*` = distToFirst,
+    `pointsMaximiz**` = pointsMaximiz,
+    `pointsVsSecond***` = pointsVsSecond,
+    `pointsVsThird****` = pointsVsThird
+  )
+```
+
+
+## Grand Prix {-}
+
+```{r echo=FALSE, fig.height=7, fig.width=9}
+plotGPMap("Season")
+```
+
+## Calendar {-}
+
+```{r echo=FALSE}
+rownames(grandPrixRounds) <- c()
+
+DT::datatable(
+  grandPrixRounds %>%
+  mutate(Date2 = format(as.Date(Date), format="%b %d")) %>%
+  mutate(Date = Date2) %>%
+  select(Round, RaceName, Date, CircuitName, Locality, Country),
+options = list(pageLength = 25),
+rownames= FALSE
+)
+```
+
+## Current Driver Standings {-}
+
+```{r echo=FALSE}
+driver_standings_current <- driver_standings %>%
+  select(FullName, code, PermanentNumber, Nationality, Constructor, position, points, wins) %>%
+  rename(Num = PermanentNumber)
+
+DT::datatable(driver_standings_current, options = list(pageLength = 25))
+```
+
+## Driver Points Development {-}
+
+```{r include=FALSE}
+driver_standings_season <- data.frame()
+for(i in 1:latest_round) {
+  driver_standings_current <- getDriverStandings(i, target_year) %>%
+    mutate(Round = i) %>%
+    select(Round, FullName, code, PermanentNumber, Nationality, Constructor, position, points, wins) %>%
+    rename(Num = PermanentNumber)
+  
+  driver_standings_season <- rbind(driver_standings_season, driver_standings_current)
+}
+```
+
+```{r echo=FALSE, fig.height=7, fig.width=9}
+ggplotly(
+    ggplot(driver_standings_season, aes(x = Round, y = points, fill = code, color = Constructor)) +
+      geom_line() +
+      constructer_scale_colors +
+      labs(x = "Round", y = "Points", color = "Driver")
+  )
+```
+
+## Position (WDC) Development {-}
+
+```{r echo=FALSE, fig.height=7, fig.width=9}
+ggplotly(
+    ggplot(driver_standings_season, aes(x = Round, y = position, fill = code, color = Constructor)) +
+      geom_line() +
+      scale_y_continuous(trans = "reverse", breaks = unique(driver_standings_season$position)) +
+      constructer_scale_colors +
+      labs(x = "Round", y = "Position", color = "Driver")
+  )
+```
+
+## Starting Position Development {-}
+
+```{r echo=FALSE, fig.height=7, fig.width=9}
+ggplotly(
+    ggplot(driverResult, aes(x = Round, y = StartingPos, fill = code, color = Constructor)) +
+      geom_line() +
+      scale_y_continuous(trans = "reverse", breaks = unique(driverResult$StartingPos)) +
+      constructer_scale_colors +
+      labs(x = "Round", y = "Position", color = "Driver")
+  )
+```
+
+## Championship forecast {-}
+
+```{r echo=FALSE}
+DT::datatable(
+  prospectTable,
+options = list(pageLength = 25)
+)
+```
+
+<span style="font-size:12px">\*Distance to the driver in the first position, i.e. `r driver_standings$FullName[driver_standings$position==1]` (`r driver_standings$code[driver_standings$position==1]`).</span>  
+<span style="font-size:12px">\*\*Points at the end of the season if driver wins the maximum amount of points available and `r driver_standings$code[driver_standings$position==1]` does not score a single point.</span>  
+<span style="font-size:12px">\*\*\*Points at the end of the season if driver wins the maximum amount of points available and `r driver_standings$code[driver_standings$position==1]` achieves P2 in every remaining race (including sprint races).</span>  
+<span style="font-size:12px">\*\*\*\*Points at the end of the season if driver wins the maximum amount of points available and `r driver_standings$code[driver_standings$position==1]` achieves P3 in every remaining race (including sprint races).</span>  
