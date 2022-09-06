@@ -4,7 +4,7 @@
 library(f1Package)
 lapply(f1_reqPackages, require, character.only = TRUE) 
 
-Sys.setlocale("LC_TIME", "English")
+#Sys.setlocale("LC_TIME", "English")
 ```
 
 ```{r include=FALSE}
@@ -86,10 +86,12 @@ pointsThird <- sum(grandPrixRounds$pointsThird[grandPrixRounds$Round > latest_ro
 prospectTable <- driver_standings %>%
   select(FullName,code,Constructor,position,points) %>%
   mutate(distToFirst = driver_standings$points[driver_standings$position==1] - points) %>%
-  mutate(pointsMaximiz = pointsLeft - distToFirst) %>%
+  mutate(pointsMaximiz = ifelse(
+    position == 1, NA, pointsLeft - distToFirst)
+    ) %>%
   mutate(pointsVsSecond = ifelse(
     position == 1, NA, pointsLeft - (distToFirst+pointsSecond)
-  )) %>%
+    )) %>%
   mutate(pointsVsThird = ifelse(
     position == 1, NA, pointsLeft - (distToFirst+pointsThird)
   )) %>%

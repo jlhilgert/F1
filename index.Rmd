@@ -1,7 +1,7 @@
 --- 
 title: "Formula 1 Season Report"
-author: "Joao Lucas D. R. Hilgert"
-date: "`r Sys.Date()`"
+author: "<b>Author:</b> Joao Lucas D. R. Hilgert"
+date: "<b>Last updated:</b> `r format(Sys.Date(),'%a, %d of %B %Y')`"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
 documentclass: book
@@ -20,8 +20,6 @@ This is an online report to the 2022 Formula 1 Season.
 ```{r warning=FALSE, include=FALSE}
 library(f1Package)
 lapply(f1_reqPackages, require, character.only = TRUE) 
-
-Sys.setlocale("LC_TIME", "English")
 ```
 
 ```{r include=FALSE}
