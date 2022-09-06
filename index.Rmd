@@ -87,9 +87,5 @@ grandPrixRounds <- grandPrixRounds %>%
   mutate(lat = as.numeric(lat), long = as.numeric(long))
 ```
 
-```{r eval=FALSE, include=FALSE}
-print(paste("<b>[", grandPrixRounds$RaceName[grandPrixRounds$Round == round_var], "](", grandPrixRounds$url[round_var], ")</b>", sep = ""))
 
-round_var <- round_var + 1
-```
 
