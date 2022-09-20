@@ -12,6 +12,7 @@ qualifying-results-1
 track-position-development-1
 lap-time-development-1
 wdc-standings-1
+australian-grand-prix
 location-2
 race-result-2
 qualifying-results-2
@@ -74,7 +75,7 @@ qualifying-results-10
 track-position-development-10
 lap-time-development-10
 wdc-standings-10
-austrian-grand-prix-1
+french-grand-prix
 location-11
 race-result-11
 qualifying-results-11
@@ -102,3 +103,10 @@ qualifying-results-14
 track-position-development-14
 lap-time-development-14
 wdc-standings-14
+italian-grand-prix
+location-15
+race-result-15
+qualifying-results-15
+track-position-development-15
+lap-time-development-15
+wdc-standings-15
