@@ -1,0 +1,154 @@
+# <b>[Belgian Grand Prix](http://en.wikipedia.org/wiki/2022_Belgian_Grand_Prix)</b>
+
+```{r warning=FALSE, include=FALSE}
+library(f1Package)
+lapply(f1_reqPackages, require, character.only = TRUE) 
+
+Sys.setlocale("LC_TIME", "English")
+```
+
+```{r include=FALSE}
+round_var <- 14
+
+paste("# <b>[", grandPrixRounds$RaceName[grandPrixRounds$Round == round_var], "](", grandPrixRounds$url[round_var], ")</b>", sep = "")
+
+target_year <- 2022
+```
+
+```{r include=FALSE}
+# Grand Prix Rounds
+url <- "http://ergast.com/api/f1/current"
+
+temp <- xmlToList(rawToChar(GET(url)$content))
+
+grandPrixRounds <- data.frame()
+for(i in 1:(length(temp$RaceTable)-1)) {
+  circuit_temp <- temp$RaceTable[i]
+  
+  row_temp <- cbind(
+    as.numeric(circuit_temp$Race$.attrs["round"]),
+    bind_rows(circuit_temp$Race[c(1,3)]),
+    circuit_temp$Race$Circuit$CircuitName,
+    bind_rows(circuit_temp$Race$Circuit$Location[1:2]),
+    bind_rows(circuit_temp$Race$Circuit$Location$.attrs),
+    circuit_temp$Race$.attrs["url"]
+  ) %>%
+    rename(
+      CircuitName = "circuit_temp$Race$Circuit$CircuitName",
+      Round = "as.numeric(circuit_temp$Race$.attrs[\"round\"])",
+      url = 'circuit_temp$Race$.attrs["url"]'
+      )
+  
+  grandPrixRounds <- rbind(grandPrixRounds, row_temp)
+}
+
+grandPrixRounds <- grandPrixRounds %>%
+  mutate(pointsFirst = ifelse(
+    Locality %in% c(
+      "Imola",
+      "Spielberg",
+      "São Paulo"
+    ),
+    32,
+    26
+  )) %>%
+  mutate(pointsSecond = ifelse(
+    Locality %in% c(
+      "Imola",
+      "Spielberg",
+      "São Paulo"
+    ),
+    25,
+    20
+  )) %>%
+  mutate(pointsThird = ifelse(
+    Locality %in% c(
+      "Imola",
+      "Spielberg",
+      "São Paulo"
+    ),
+    21,
+    15
+  )) %>%
+  mutate(lat = as.numeric(lat), long = as.numeric(long))
+```
+
+```{r include=FALSE}
+driver_standings <- getDriverStandings()
+
+constructer_list <- unique(driver_standings %>% select(Constructor, ColorCode))
+
+constructer_scale_colors <- getConstructerScaleColors()
+
+lap_list <- getLapList(round_var)
+driverResult <- getDriverResult(round_var)
+quali_df <- getQualiResult(round_var)
+```
+
+```{r include=FALSE}
+winner_hex <- constructer_list$ColorCode[constructer_list$Constructor == as.character(driverResult %>% filter(Round == round_var) %>% filter(position == 1) %>% select(Constructor))]
+pole_hex <- constructer_list$ColorCode[constructer_list$Constructor == as.character(driverResult %>% filter(Round == round_var) %>% filter(StartingPos == 1) %>% select(Constructor))]
+fastest_lap_hex <- constructer_list$ColorCode[constructer_list$Constructor == as.character(driverResult %>% filter(Round == round_var) %>% filter(FastestLap == min(FastestLap, na.rm = T)) %>% select(Constructor))]
+```
+
+
+**Winner:** <span style="background-color:`r winner_hex`;color:white">&nbsp;`r paste(as.character(driverResult %>% filter(Round == round_var) %>% filter(position == 1) %>% select(code)), " (", as.character(driverResult %>% filter(Round == round_var) %>% filter(position == 1) %>% select(Constructor)), ")", sep = "")`&nbsp;</span> <br>
+
+**Pole:** <span style="background-color:`r pole_hex`;color:white">&nbsp;`r paste(as.character(driverResult %>% filter(Round == round_var) %>% filter(StartingPos == 1) %>% select(code)), " (", as.character(driverResult %>% filter(Round == round_var, StartingPos == 1) %>% select(Constructor)), ")", sep = "")`&nbsp;</span>  <br>
+
+**Fastest Lap:** <span style="background-color:`r fastest_lap_hex`;color:white">&nbsp;`r paste(as.character(driverResult %>% filter(Round == round_var) %>% filter(FastestLap == min(FastestLap, na.rm = T)) %>% select(code)), " (", as.character(driverResult %>% filter(Round == round_var) %>% filter(FastestLap == min(FastestLap, na.rm = T)) %>% select(Constructor)), ") - ", as.character(driverResult %>% filter(Round == round_var) %>% filter(FastestLap == min(FastestLap, na.rm = T)) %>% select(FastestLap)), "s", sep = "")`&nbsp;</span>
+
+```{r echo=FALSE}
+driver_standings <- getDriverStandings(round_var, target_year)
+
+driver_standings_current <- driver_standings %>%
+  select(FullName, code, PermanentNumber, Nationality, Constructor, position, points, wins) %>%
+  rename(Num = PermanentNumber) %>%
+  relocate(position, .before = FullName)
+```
+
+## Location
+
+```{r echo=FALSE, fig.height=7, fig.width=9}
+plotGPMap(round_var)
+```
+
+## Race Result
+
+```{r echo=FALSE}
+DT::datatable(
+driverResult %>%
+  filter(Round == round_var) %>%
+  select(code, FullName, Constructor, position, StartingPos, points, Laps, Status, FastestLap, avgSpeedKph), 
+options = list(pageLength = 25)
+)
+```
+
+## Qualifying Results
+
+```{r echo=FALSE}
+DT::datatable(
+quali_df[quali_df$Round == round_var,] %>% select(-c("Round", "Nationality")),
+options = list(pageLength = 25)
+)
+```
+
+## Track Position Development
+
+```{r echo=FALSE, fig.height=7, fig.width=9}
+lapPlots <- plotLapTimes(round_var)
+
+lapPlots[[1]]
+```
+
+## Lap Time Development
+
+```{r echo=FALSE, fig.height=7, fig.width=9}
+lapPlots[[2]]
+```
+
+## WDC Standings
+
+```{r echo=FALSE}
+DT::datatable(driver_standings_current, options = list(pageLength = 25), rownames = F)
+```
