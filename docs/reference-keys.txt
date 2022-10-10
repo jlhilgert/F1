@@ -110,3 +110,17 @@ qualifying-results-15
 track-position-development-15
 lap-time-development-15
 wdc-standings-15
+singapore-grand-prix
+location-16
+race-result-16
+qualifying-results-16
+track-position-development-16
+lap-time-development-16
+wdc-standings-16
+japanese-grand-prix
+location-17
+race-result-17
+qualifying-results-17
+track-position-development-17
+lap-time-development-17
+wdc-standings-17

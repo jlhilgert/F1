@@ -82,7 +82,14 @@ getDriverResult <- function(latestRound = latest_round) {
   if(max_round <= latestRound) {
     for(i in max_round:latestRound) {
       url <- paste("http://ergast.com/api/f1/current/", i, "/results", sep = "")
-      temp <- xmlToList(rawToChar(GET(url)$content))
+      
+      temp <- rawToChar(GET(url)$content)
+      
+      while(temp == "Unable to select database") {
+        temp <- rawToChar(GET(url)$content)
+      }
+      
+      temp <- xmlToList(temp)
   
       driverResult_GP <- data.frame()
       for(j in 1:length(temp$RaceTable$Race$ResultsList)) {
@@ -156,7 +163,13 @@ getLapList <- function(latestRound = latest_round) {
       for(i in 1:100) {
         url <- paste("https://ergast.com/api/f1/current/", j, "/laps/", i, sep = "")
         
-        temp <- xmlToList(rawToChar(GET(url)$content))
+        temp <- rawToChar(GET(url)$content)
+        
+        while(temp == "Unable to select database") {
+          temp <- rawToChar(GET(url)$content)
+        }
+        
+        temp <- xmlToList(temp)
         
         if(is.null(temp$RaceTable$Race$LapsList)) {
           break
@@ -216,7 +229,14 @@ getQualiResult <- function(latestRound = latest_round) {
   if(max_round <= latestRound) {
     for (j in max_round:round_var) {
       url <- paste("http://ergast.com/api/f1/current/", j, "/qualifying", sep = "")
-      temp <- xmlToList(rawToChar(GET(url)$content))
+      
+      temp <- rawToChar(GET(url)$content)
+      
+      while(temp == "Unable to select database") {
+        temp <- rawToChar(GET(url)$content)
+      }
+      
+      temp <- xmlToList(temp)
       
       quali_ind <- temp$RaceTable$Race
       

@@ -1,18 +1,10 @@
-# <b>[Austrian Grand Prix](http://en.wikipedia.org/wiki/2022_Austrian_Grand_Prix)</b>
+# <b>[Singapore Grand Prix](http://en.wikipedia.org/wiki/2022_Singapore_Grand_Prix)</b>
 
 ```{r warning=FALSE, include=FALSE}
 library(f1Package)
 lapply(f1_reqPackages, require, character.only = TRUE) 
 
 Sys.setlocale("LC_TIME", "English")
-```
-
-```{r include=FALSE}
-round_var <- 11
-
-paste("# <b>[", grandPrixRounds$RaceName[grandPrixRounds$Round == round_var], "](", grandPrixRounds$url[round_var], ")</b>", sep = "")
-
-target_year <- 2022
 ```
 
 ```{r include=FALSE}
@@ -74,11 +66,23 @@ grandPrixRounds <- grandPrixRounds %>%
 ```
 
 ```{r include=FALSE}
+round_var <- 17
+
+paste("# <b>[", grandPrixRounds$RaceName[grandPrixRounds$Round == round_var], "](", grandPrixRounds$url[round_var], ")</b>", sep = "")
+
+target_year <- 2022
+```
+
+```{r include=FALSE}
 driver_standings <- getDriverStandings()
 
 constructer_list <- unique(driver_standings %>% select(Constructor, ColorCode))
 
 constructer_scale_colors <- getConstructerScaleColors()
+
+lap_list <- getLapList(round_var)
+driverResult <- getDriverResult(round_var)
+quali_df <- getQualiResult(round_var)
 ```
 
 ```{r include=FALSE}
